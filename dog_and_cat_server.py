@@ -1,8 +1,5 @@
-# main.py
 from flask import Flask, current_app, request, jsonify, redirect, url_for
 from PIL import Image
-import requests
-from io import BytesIO
 import logging
 import numpy as np
 import os
@@ -15,7 +12,6 @@ print("Loading model configuration.  One moment...")
 model = load_model('./second_try.h5')
 model.summary()
 print("Configuration loaded.")
-app = Flask(__name__)
 
 #  This is by convention based on how the model was trained...
 class_names = {0: 'CAT', 1: 'DOG'}
@@ -31,7 +27,7 @@ else:
 
 # We save the image and then process it.
 UPLOAD_FOLDER = './uploads'
-ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 app = Flask(__name__, static_url_path='')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -42,17 +38,6 @@ def setup_logging():
         # In production mode, add log handler to sys.stderr.
         app.logger.addHandler(logging.StreamHandler())
         app.logger.setLevel(logging.INFO)
-
-@app.route('/url/', methods=['GET'])
-def predict_by_url():
-    try:
-        url = request.get_json()['url']
-        response = requests.get(url)
-        img = Image.open(BytesIO(response.content))
-        classes = predict(img)
-        return format_response(classes)
-    except Exception:
-        return jsonify(status_code='400', msg='Bad Request'), 400
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -99,15 +84,21 @@ def predict(f):
 def predict_by_file():
     classes = "ERROR PROCESSING FILE!"
     if request.method == 'POST':
+
         # check if the post request has the file part
         if 'file' not in request.files:
-            flash('No file part')
-            return redirect(request.url)
+            return "File no found."
+
         file = request.files['file']
-        # if user does not select file, browser also
-        # submit a empty part without filename
+
+        # If there is not file, send a message
         if file.filename == '':
-            return "NO FILE SELECTED?!"
+            return "No file appears to be selected."
+
+        # If it is an invalid file, send a message.
+        if allowed_file(file.filename)==False:
+            return "File type not allowed."
+
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
