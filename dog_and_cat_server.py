@@ -3,6 +3,7 @@ from PIL import Image
 import logging
 import numpy as np
 import os
+import json
 from werkzeug.utils import secure_filename
 from keras.models import load_model
 from keras import backend as K
@@ -44,6 +45,10 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def format_response(classes):
+    v = {"class": class_names[round(classes.item(0))]}
+    print("V is {0}".format(v))
+    j = json.dumps(v)
+    print("J is {0}".format(j))
     return '''
     <!DOCTYPE html>
 <html>
@@ -58,10 +63,20 @@ Based on the trained model, the predicted class for this photo is:<br>
 <br>
 <h1>{0}</h1><br>
 <a href="/">Click to try another image...<br>
+<br><br>
+<hr>
+More about this application can be found 
+<a href="http://datascience.netlify.com/general/2017/09/25/data_science_21.html">http://datascience.netlify.com</a>
+<br><br>
+Questions or comments about this app?<br>
+Please contact me at mporter@paintedharmony.com<br>
+<br>
+Code for this application is <a href="https://github.com/fractalbass/dogs_and_cats">available in this GitHub repo.</a>
+<br><br>
 </body>
 
 </html>
-    '''.format(class_names[round(classes.item(0))])
+    '''.format(j)
 
 @app.route('/')
 def root():
