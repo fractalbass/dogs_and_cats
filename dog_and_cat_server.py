@@ -62,7 +62,7 @@ def format_response(classes):
 Based on the trained model, the predicted class for this photo is:<br>
 <br>
 <h1>{0}</h1><br>
-<a href="/">Click to try another image...<br>
+<a href="/index.html">Click to try another image...</a><br>
 <br><br>
 <hr>
 More about this application can be found 
