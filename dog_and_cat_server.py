@@ -1,4 +1,4 @@
-from flask import Flask, current_app, request, jsonify, redirect, url_for
+from flask import Flask, current_app, request, jsonify, redirect, url_for,  send_from_directory
 from PIL import Image
 import logging
 import numpy as np
@@ -44,7 +44,7 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def format_response(classes):
+def format_response(classes, filename):
     v = {"class": class_names[round(classes.item(0))]}
     print("V is {0}".format(v))
     j = json.dumps(v)
@@ -59,9 +59,10 @@ def format_response(classes):
 <h1>
     Deep Learning Processing Server Example
 </h1>
+<img width="180" src="/images/{0}"></img><br>
 Based on the trained model, the predicted class for this photo is:<br>
 <br>
-<h1>{0}</h1><br>
+<h1>{1}</h1><br>
 <a href="/index.html">Click to try another image...</a><br>
 <br><br>
 <hr>
@@ -76,11 +77,15 @@ Code for this application is <a href="https://github.com/fractalbass/dogs_and_ca
 </body>
 
 </html>
-    '''.format(j)
+    '''.format(filename, j)
 
 @app.route('/')
 def root():
     return app.send_static_file('index.html')
+
+@app.route('/images/<path:path>')
+def send_image(path):
+    return send_from_directory('uploads', path)
 
 
 def predict(f):
@@ -119,7 +124,7 @@ def predict_by_file():
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             classes = predict(file)
 
-    return format_response(classes)
+    return format_response(classes, file.filename)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=False)
